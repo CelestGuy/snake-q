@@ -121,11 +121,8 @@ class QLearning {
         ran.max = this.maxIterations;
 
         let isDead = false;
-        game.onDead = () => {
-            isDead = true;
-        };
 
-        game.init();
+        Game.getInstance().reset();
 
         for (let iteration = 0; iteration < this.maxIterations && this.training; iteration++) {
             ran.value = iteration;
@@ -134,13 +131,13 @@ class QLearning {
 
             while (!isDead) {
                 try {
-                    let board = game.board;
+                    let board = Game.getInstance().board;
                     let state = getState(board);
                     let action = this.chooseAction(state);
 
                     board.snake.direction = action;
 
-                    game.update();
+                    Game.getInstance().update();
 
                     let nextState = getState(board);
 
@@ -166,6 +163,7 @@ class QLearning {
                             break;
                         case 2:
                             reward = DEAD;
+                            isDead = true;
                             break;
                     }
 
@@ -264,12 +262,12 @@ function getState(board) {
         }
     }
 
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            const pos = new Vector(j - 1, i - 1).add(snakePosition);
+    for (let i = -1; i < 2; i++) {
+        for (let j = -1; j < 2; j++) {
+            const pos = new Vector(j, i).add(snakePosition);
 
             if (!board.range.intersects(pos)) {
-                state.setValue(new Vector(j - 1, i - 1), 2);
+                state.setValue(pos, 2);
             }
         }
     }
@@ -291,7 +289,7 @@ function observe() {
 
     if (instance) {
         int = setInterval(() => {
-            let state = getState(game.board);
+            let state = getState(Game.getInstance().board);
             instance.renderState(state);
 
             let direction = null;
@@ -308,7 +306,7 @@ function observe() {
 
             if (direction != null) {
                 instance.renderAction(direction);
-                game.board.snake.direction = direction;
+                Game.getInstance().board.snake.direction = direction;
             }
         }, 1);
     }
