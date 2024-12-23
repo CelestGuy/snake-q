@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Snake Q</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" crossorigin="anonymous"></script>
+</head>
+
+<body data-bs-theme="dark">
+    <div class="d-flex flex-column h-100 p-3 gap-3">
+        <!-- pause button, play button and reset button -->
+        <div class="d-flex gap-3">
+            <div class="d-flex p-3 gap-3 border border-light rounded">
+                <button class="btn btn-success" id="startButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
+                    </svg>
+                </button>
+                <button class="btn btn-warning" id="runButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                    </svg>
+                </button>
+                <button class="btn btn-danger" id="stopButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-pause-fill" viewBox="0 0 16 16">
+                        <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="d-flex p-3 gap-3 border border-light rounded flex-grow-1">
+                <button class="btn btn-primary" data-bs-target="#training-options-modal" data-bs-toggle="modal">
+                    <span>Training options</span>
+                </button>
+                <button class="btn btn-light" onclick="observe()">
+                    Observe Snake
+                </button>
+                <button class="btn btn-light" onclick="unobserve()">
+                    Stop observing
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex p-3 gap-3 flex-column border border-light rounded">
+            <div class="d-flex justify-content-center">
+                <canvas id="canvas" width="512px" height="512px" class="bg-black">
+                </canvas>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3">
+                <div>
+                    <canvas id="stateCanvas" width="144px" height="144px" class="bg-black">
+                    </canvas>
+                </div>
+
+                <div>
+                    <canvas id="actionCanvas" width="144px" height="144px" class="bg-black">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="training-options-modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Snake training options</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="training-options-form" method="get" action="javascript:void(0);" onsubmit="newQLearningTraining(this);">
+                        <div class="form-control">
+                            <label>
+                                Epsilon:
+                                <input type="number" min="0.0" max="1.0" step="0.01" value="0.85" name="epsilon"/>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label>
+                                Learning rate:
+                                <input type="number" min="0.0" max="1.0" step="0.01" value="0.85" name="learningRate"/>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label>
+                                Discount factor:
+                                <input type="number" min="0.0" max="1.0" step="0.01" value="0.85" name="discountFactor"/>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label>
+                                Max iterations:
+                                <input type="number" name="maxIterations" min="1" step="1" value="200"/>
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button form="training-options-form" type="reset" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button form="training-options-form" type="submit" class="btn btn-primary" data-bs-target="#training-modal" data-bs-toggle="modal">Train</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="training-modal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Snake training... (<span id="ab">0</span>)</h5>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        Please wait while we are mining cryptocurrencies on your computer
+                    </div>
+
+                    <div>
+                        <label>
+                            (We are training your snake...)
+                            <input id="a" value="0" type="range" min="1" max="1000" disabled>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger" data-bs-dismiss="modal" onclick="stopTraining()">Stop training</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src='utils.js'></script>
+    <script src='snake.js'></script>
+    <script src='qlearning.js'></script>
+</body>
+</html>
