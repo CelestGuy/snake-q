@@ -33,7 +33,10 @@ class State {
 }
 
 class QLearning {
-    static instance;
+    /**
+     * @type {QLearning}
+     */
+    static #instance = null;
 
     constructor(epsilon, learningRate, discountFactor, maxIterations) {
         this.epsilon = epsilon;
@@ -47,8 +50,6 @@ class QLearning {
          * @type {Map<String, Map<String, Number>>}
          */
         this.qMap = new Map();
-
-        QLearning.instance = this;
     }
 
     initQTable() {
@@ -173,7 +174,8 @@ class QLearning {
                     this.Q(state, action, value);
                 } catch (e) {
                     console.error(e);
-                    alert(e);
+                    alert(e.stack);
+                    return;
                 }
             }
         }
@@ -181,60 +183,16 @@ class QLearning {
         console.log("finished training");
     }
 
-    renderState(s) {
-        /**
-         * @type {HTMLCanvasElement}
-         */
-        const canvas = document.getElementById("stateCanvas");
-        const ctx = canvas.getContext("2d");
-
-        const cellWidth = canvas.width / 3;
-        const cellHeight = canvas.height / 3;
-
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                const v = s.array[i][j];
-
-                let color;
-                switch (v) {
-                    case 0:
-                        color = "#000";
-                        break;
-                    case 1:
-                        color = "#f00";
-                        break;
-                    case 2:
-                        color = "#888";
-                        break;
-                }
-
-                ctx.fillStyle = color;
-                ctx.fillRect(j * cellWidth, i * cellHeight, cellWidth, cellHeight);
-            }
-        }
-    }
-
-    renderAction(a) {
-        const canvas = document.getElementById("actionCanvas");
-        const ctx = canvas.getContext("2d");
-
-        const cellWidth = canvas.width / 3;
-        const cellHeight = canvas.height / 3;
-
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        let po = a.add(new Vector(1, 1));
-
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(po.x * cellWidth, po.y * cellHeight, cellWidth, cellHeight);
-    }
-
     stop() {
         this.training = false;
+    }
+
+    static getInstance() {
+        if (QLearning.#instance == null) {
+            QLearning.#instance = new QLearning();
+        }
+
+        return QLearning.#instance;
     }
 }
 
@@ -243,15 +201,13 @@ function getState(board) {
 
     let snakePosition = Vector.from(board.snake.body.last());
 
-    for (let fruitHash of board.fruits.values()) {
-        let fruitPosition = Vector.from(fruitHash).sub(snakePosition);
+    const fruitPosition = board.fruit.sub(snakePosition);
 
-        if (stateRange.intersects(fruitPosition)) {
-            state.setValue(fruitPosition, 1);
-        } else {
-            let pos = new Vector(clamp(-1, 1, fruitPosition.x), clamp(-1, 1, fruitPosition.y));
-            state.setValue(pos, 1);
-        }
+    if (stateRange.intersects(fruitPosition)) {
+        state.setValue(fruitPosition, 1);
+    } else {
+        let pos = new Vector(clamp(-1, 1, fruitPosition.x), clamp(-1, 1, fruitPosition.y));
+        state.setValue(pos, 1);
     }
 
     for (let snakeHash of board.snake.body.array()) {
@@ -264,78 +220,13 @@ function getState(board) {
 
     for (let i = -1; i < 2; i++) {
         for (let j = -1; j < 2; j++) {
-            const pos = new Vector(j, i).add(snakePosition);
+            const pos = new Vector(j, i);
 
-            if (!board.range.intersects(pos)) {
+            if (!board.range.intersects(pos.add(snakePosition))) {
                 state.setValue(pos, 2);
             }
         }
     }
 
     return state;
-}
-
-
-let int;
-
-function unobserve() {
-    clearInterval(int);
-}
-
-function observe() {
-    unobserve();
-
-    const instance = QLearning.instance;
-
-    if (instance) {
-        int = setInterval(() => {
-            let state = getState(Game.getInstance().board);
-            instance.renderState(state);
-
-            let direction = null;
-            let max = Number.MIN_VALUE;
-
-            for (let dir of Object.values(Direction)) {
-                const v = instance.Q(state, dir);
-
-                if (max < v) {
-                    max = v;
-                    direction = dir;
-                }
-            }
-
-            if (direction != null) {
-                instance.renderAction(direction);
-                Game.getInstance().board.snake.direction = direction;
-            }
-        }, 1);
-    }
-}
-
-/**
- * @param {HTMLFormElement} form
- */
-function newQLearningTraining(form) {
-    const formData = new FormData(form);
-
-    const qLearning = new QLearning(
-        Number(formData.get("epsilon")),
-        Number(formData.get("learningRate")),
-        Number(formData.get("discountFactor")),
-        Number(formData.get("maxIterations"))
-    );
-
-    qLearning.initQTable();
-
-    setTimeout(() => {
-        qLearning.train();
-    }, 1);
-}
-
-function stopTraining() {
-    const instance = QLearning.instance;
-
-    if (instance != null) {
-        instance.stop();
-    }
 }

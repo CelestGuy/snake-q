@@ -11,19 +11,29 @@
 </head>
 
 <body data-bs-theme="dark">
+    <noscript class="m-3">
+        <div class="alert alert-warning">
+            You need to enable JavaScript to run this app.
+        </div>
+    </noscript>
+
     <div class="d-flex flex-column h-100 p-3 gap-3">
-        <div class="d-flex gap-3">
+        <div class="d-flex gap-3 justify-content-between">
             <div class="d-flex p-3 gap-3 border border-light rounded">
-                <button class="btn btn-success" onclick="Game.getInstance().play();">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
-                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
-                    </svg>
-                </button>
-                <button class="btn btn-warning" onclick="Game.getInstance().stop();">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-pause-fill" viewBox="0 0 16 16">
-                        <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
-                    </svg>
-                </button>
+                <div class="btn-group">
+                    <input type="radio" class="btn-check" name="playing" value="true" id="play-btn" autocomplete="off">
+                    <label class="btn btn-outline-success" for="play-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+                            <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                        </svg>
+                    </label>
+                    <input type="radio" class="btn-check" name="playing" value="false" id="stop-btn" autocomplete="off" checked>
+                    <label class="btn btn-outline-danger" for="stop-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-pause-fill" viewBox="0 0 16 16">
+                            <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"/>
+                        </svg>
+                    </label>
+                </div>
                 <button class="btn btn-danger" onclick="Game.getInstance().reset();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                         <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
@@ -36,16 +46,13 @@
                 </button>
             </div>
 
-            <div class="d-flex p-3 gap-3 border border-light rounded flex-grow-1">
+            <div class="d-flex p-3 gap-3 border border-light rounded">
                 <button class="btn btn-primary" data-bs-target="#training-options-modal" data-bs-toggle="modal">
-                    <span>Training options</span>
+                    <span>Train</span>
                 </button>
-                <button class="btn btn-light" onclick="observe()">
-                    Observe Snake
-                </button>
-                <button class="btn btn-light" onclick="unobserve()">
-                    Stop observing
-                </button>
+
+                <input type="checkbox" class="btn-check" name="decide" id="decision-btn" autocomplete="off">
+                <label class="btn btn-outline-warning" for="decision-btn">Decide</label>
             </div>
         </div>
 
@@ -76,18 +83,35 @@
                     <h5 class="modal-title">Game settings</h5>
                 </div>
                 <div class="modal-body">
-                    <form id="game-settings-form" method="dialog" onsubmit="Game.getInstance().setSettings(new FormData(this));">
-                        <div class="form-control">
-                            <label>
-                                Fruit count:
-                                <input type="number" min="1" max="10" step="1" value="1" name="fruitCount"/>
-                            </label>
+                    <form id="game-settings-form" method="dialog" onsubmit="setGameSettings(this);">
+
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="m-2">
+                                <label class="form-label" for="boardHeight">Height</label>
+                                <input class="form-control" id="boardHeight" name="boardHeight" type="number" min="8" max="128" step="1" value="16"/>
+                            </div>
+
+                            <div class="vr"></div>
+
+                            <div>
+                                <div class="m-2">
+                                    <label class="form-label" for="boardWidth">Width</label>
+                                    <input class="form-control" id="boardWidth" name="boardWidth" type="number" min="1"  min="8" max="128" value="16"/>
+                                </div>
+                                <hr>
+                                <div>
+                                    <canvas width="144px" height="144px" class="">
+                                    </canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-control">
-                            <label>
-                                Game loop time:
-                                <input type="number" min="1" max="1000" step="25" value="125" name="gameLoopTime"/>
-                            </label>
+
+                        <div>
+                            <label class="form-label" for="gameLoopTime">Update time</label>
+                            <div class="input-group">
+                                <input class="form-control" id="gameLoopTime" name="gameLoopTime" type="number" min="1" max="1000" step="1" value="125"/>
+                                <span class="input-group-text">ms</span>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -103,33 +127,30 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Snake training options</h5>
+                    <h5 class="modal-title">Configure training parameters</h5>
                 </div>
                 <div class="modal-body">
-                    <form id="training-options-form" method="get" action="javascript:void(0);" onsubmit="newQLearningTraining(this);">
-                        <div class="form-control">
-                            <label>
-                                Epsilon:
-                                <input type="number" min="0.0" max="1.0" step="0.01" value="0.85" name="epsilon"/>
-                            </label>
+                    <form id="training-options-form" method="dialog" onsubmit="newQLearningTraining(this);">
+                        <div class="mb-4 row">
+                            <div class="col">
+                                <label for="epsilon" class="form-label">Epsilon</label>
+                                <input type="number" class="form-control" id="epsilon" name="epsilon" min="0.0" max="1.0" step="0.01" value="0.85"/>
+                            </div>
+
+                            <div class="col">
+                                <label for="learningRate" class="form-label">Learning rate</label>
+                                <input type="number" class="form-control" id="learningRate" name="learningRate" min="0.0" max="1.0" step="0.01" value="0.85"/>
+                            </div>
+
+                            <div class="col">
+                                <label for="discountFactor" class="form-label">Discount factor</label>
+                                <input type="number" class="form-control" id="discountFactor" name="discountFactor" min="0.0" max="1.0" step="0.01" value="0.85"/>
+                            </div>
                         </div>
-                        <div class="form-control">
-                            <label>
-                                Learning rate:
-                                <input type="number" min="0.0" max="1.0" step="0.01" value="0.85" name="learningRate"/>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label>
-                                Discount factor:
-                                <input type="number" min="0.0" max="1.0" step="0.01" value="0.85" name="discountFactor"/>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label>
-                                Max iterations:
-                                <input type="number" name="maxIterations" min="1" step="1" value="200"/>
-                            </label>
+
+                        <div class="mb-4">
+                            <label for="maxIterations" class="form-label">Max iteration</label>
+                            <input type="number" class="form-control" id="maxIterations" name="maxIterations" min="1" step="1" value="500"/>
                         </div>
                     </form>
                 </div>
@@ -160,7 +181,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger" data-bs-dismiss="modal" onclick="stopTraining()">Stop training</button>
+                    <button type="submit" class="btn btn-danger" data-bs-dismiss="modal" onclick="QLearning.getInstance().stop()">Stop training</button>
                 </div>
             </div>
         </div>
@@ -169,5 +190,6 @@
     <script src='js/utils.js'></script>
     <script src='js/snake.js'></script>
     <script src='js/q-learning.js'></script>
+    <script src='js/index.js'></script>
 </body>
 </html>

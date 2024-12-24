@@ -26,6 +26,13 @@ class Vector {
         return JSON.stringify(this);
     }
 
+    equals(other) {
+        if (other instanceof Vector) {
+            return other.x === this.x && other.y === this.y;
+        }
+        return false;
+    }
+
     /**
      * @param {AABB} aabb 
      * @returns 
@@ -76,45 +83,6 @@ class VectorStack {
 
     array() {
         return this.#stack;
-    }
-}
-
-class VectorSet extends Set {
-    /**
-     * @param  {Vector[]} vectors
-     */
-    constructor(vectors = []) {
-        super();
-        vectors.forEach((v) => {
-            this.add(v); 
-        });
-    }
-
-    /**
-     * Appends a new element with a specified value to the end of the Set.
-     * 
-     * @param {Vector} vector 
-     */
-    add(vector) {
-        super.add(vector.hash());
-    }
-
-    /**
-     * Removes a specified value from the Set.
-     * 
-     * @param {Vector} vector 
-     * @returns — Returns true if an element in the Set existed and has been removed, or false if the element does not exist.
-     */
-    delete(vector) {
-        return super.delete(vector.hash());
-    }
-
-    /**
-     * @param {Vector} vector 
-     * @returns — a boolean indicating whether an element with the specified value exists in the Set or not.
-     */
-    has(vector) {
-        return super.has(vector.hash());
     }
 }
 

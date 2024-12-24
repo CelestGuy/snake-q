@@ -1,11 +1,6 @@
 const SNAKE_COLOR = "#0b0";
 const FRUIT_COLOR = "#e02";
 
-const BOARD_RANGE = new AABB(
-    new Vector(0, 0),
-    new Vector(32, 32)
-);
-
 class Snake {
     /**
      * @param {Vector} position 
@@ -46,7 +41,7 @@ class Board {
     constructor(range = AABB.maxSafeInteger()) {
         this.range = range;
         this.snake = new Snake(Vector.random(range), Direction.UP);
-        this.fruits = new VectorSet();
+        this.fruit = null;
     }
 
     randomPosition() {
@@ -54,13 +49,13 @@ class Board {
 
         do {
             pos = Vector.random(this.range);
-        } while(this.snake.has(pos) || this.fruits.has(pos));
+        } while(this.snake.has(pos) || pos.equals(this.fruit));
 
         return pos;
     }
 
-    addFruit(pos = this.randomPosition()) {
-        this.fruits.add(pos);
+    setFruit(pos = this.randomPosition()) {
+        this.fruit = pos;
     }
 }
 
@@ -76,56 +71,53 @@ class Game {
     board = null;
 
     constructor() {
-        this.fruitCount = 1;
         this.gameLoopTime = 125;
+        this.range = new AABB(
+            new Vector(0, 0),
+            new Vector(16, 16)
+        );
         this.updateModal();
     }
 
     reset() {
-        this.stop();
-        this.board = new Board(BOARD_RANGE);
-
-        for (let i = 0; i < this.fruitCount; i++) {
-            this.board.addFruit();
-        }
-
-        this.render();
+        this.board = new Board(this.range);
+        this.board.setFruit();
     }
 
-    play() {
-        this.stop();
+    start() {
+        if (this.interval > 0) {
+            clearInterval(this.interval);
+        }
 
         let b = this;
         this.interval = setInterval(() => {
-            b.update();
+            const running = document.querySelector("input[name=playing]:checked").value;
+
+            if (running === "true") {
+                b.update();
+            }
+
             b.render();
         }, this.gameLoopTime);
     }
 
-    stop() {
-        if (this.interval > 0) {
-            clearInterval(this.interval);
-            this.interval = -1;
-        }
-    }
-
     update() {
-        const lastPosition = Vector.from(this.board.snake.body.last());
-        const newPosition = lastPosition.add(this.board.snake.direction);
+        const board = this.board;
+        const lastPosition = Vector.from(board.snake.position());
+        const newPosition = lastPosition.add(board.snake.direction);
 
-        if (!this.board.snake.has(newPosition) && this.board.range.intersects(newPosition)) {
-            const onFruit = this.board.fruits.has(newPosition);
+        if (!board.snake.has(newPosition) && board.range.intersects(newPosition)) {
+            const onFruit = newPosition.equals(board.fruit);
 
             if (onFruit) {
-                this.board.snake.grow();
-                this.board.fruits.delete(newPosition);
-                this.board.addFruit();
+                board.snake.grow();
+                board.setFruit();
             }
 
-            this.board.snake.move();
+            board.snake.move();
         } else {
             console.log("Game over!");
-            this.stop();
+            this.reset();
         }
     }
 
@@ -145,23 +137,16 @@ class Game {
             ctx.fillRect(position.x * cellWidth, position.y * cellHeight, cellWidth, cellHeight);
         }
 
-        for (let positionJson of this.board.fruits.values()) {
-            const position = Vector.from(positionJson);
+        const fruitPosition = this.board.fruit;
+
+        if (fruitPosition != null) {
             ctx.fillStyle = FRUIT_COLOR;
-            ctx.fillRect(position.x * cellWidth, position.y * cellHeight, cellWidth, cellHeight);
+            ctx.fillRect(fruitPosition.x * cellWidth, fruitPosition.y * cellHeight, cellWidth, cellHeight);
         }
     }
 
     updateModal() {
-        document.querySelector("input[name=fruitCount]").value = this.fruitCount;
         document.querySelector("input[name=gameLoopTime]").value = this.gameLoopTime;
-    }
-
-    setSettings(settingsFormData) {
-        console.log(settingsFormData);
-        this.fruitCount = Number(settingsFormData.get("fruitCount"));
-        this.gameLoopTime = Number(settingsFormData.get("gameLoopTime"));
-        console.log(this);
     }
 
     static getInstance() {
@@ -172,16 +157,3 @@ class Game {
         return Game.#instance;
     }
 }
-
-(function() {
-    Game.getInstance().reset();
-
-    window.onkeydown = (keyEvent) => {
-        const direction = KeyMap[keyEvent.keyCode.toString()];
-
-        const game = Game.getInstance();
-        if (direction != null) {    
-            game.board.snake.direction = direction;
-        }
-    };
-})();
