@@ -26,7 +26,7 @@ function train() {
     const worker = new Worker("js/q-learning.js");
 
     worker.onmessage = function (event) {
-        console.log(JSON.stringify(event.data));
+        console.log("test 2 : ", JSON.stringify(event.data));
     }
 
     worker.postMessage({ execute: "train" });
