@@ -9,12 +9,7 @@ function newQLearningTraining(form) {
     qLearning.learningRate = Number(formData.get("learningRate"));
     qLearning.discountFactor = Number(formData.get("discountFactor"));
     qLearning.maxIterations = Number(formData.get("maxIterations"));
-
-    qLearning.initQTable();
-
-    setTimeout(() => {
-        qLearning.train();
-    }, 1);
+    train();
 }
 
 /**
@@ -25,6 +20,16 @@ function setGameSettings(form) {
     const game = Game.getInstance();
 
     game.gameLoopTime = Number(settingsFormData.get("gameLoopTime"));
+}
+
+function train() {
+    const worker = new Worker("js/q-learning.js");
+
+    worker.onmessage = function (event) {
+        console.log("test 2 : ", JSON.stringify(event.data));
+    }
+
+    worker.postMessage({ execute: "train" });
 }
 
 function renderState(s) {
