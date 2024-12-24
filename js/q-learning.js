@@ -116,6 +116,8 @@ class QLearning {
     }
 
     train() {
+        this.initQTable();
+
         this.training = true;
         const ran = document.getElementById("a");
         const ran2 = document.getElementById("ab");
@@ -229,4 +231,9 @@ function getState(board) {
     }
 
     return state;
+}
+
+onmessage = function(event) {
+    console.log(JSON.stringify(event.data));
+    postMessage({ data: "Bien reçu !" });
 }
