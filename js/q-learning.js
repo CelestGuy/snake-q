@@ -234,6 +234,8 @@ function getState(board) {
 }
 
 onmessage = function(event) {
-    console.log("test : ",  JSON.stringify(event.data));
-    postMessage({ data: "Bien reçu !" });
+    if (event.data.execute) {
+        console.log("test : ",  JSON.stringify(event.data));
+        postMessage({ data: "Bien reçu !" });
+    }
 }
